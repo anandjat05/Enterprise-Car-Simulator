@@ -1,0 +1,36 @@
+<?php
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of User
+ *Id: 700 67 3474
+ * @author Anand Jat
+ */
+class Car_appointment extends CI_Model {
+
+    //put your code here
+    // function __construct() {
+    //     parent::__construct();
+    //     $this->userTbl = 'tbl_carappointment';
+        
+    // }
+    public function bookAppointment($datas){
+        {
+      $this->db->insert('tbl_carappointment', $datas);
+      $appointment_Id = $this->db->insert_id();
+        }
+
+        return $appointment_Id;
+
+    }//end book appointment function
+
+}
+?>
