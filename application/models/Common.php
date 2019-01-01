@@ -277,5 +277,19 @@ class Common extends CI_Model {
             return $query->result();
         }
     }
+    /**
+     * 
+     *Select specific data from database
+     */
+    public function SelectSpecific($table, $userid, $pickupDate) {
+        $this->tblCommn = $table;
+        if ($this->db->table_exists($this->tblCommn)) {
+            $this->db->where("UserId = '".$userid."'&& pickupDate >= '".$pickupDate."'");
+            $query = $this->db->get($this->tblCommn);
+            return $query->result();
+        } else {
+            return FALSE;
+        }
+    }
 
 }

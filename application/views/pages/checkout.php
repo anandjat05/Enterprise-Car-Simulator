@@ -37,13 +37,18 @@
                                         </div>
                                         <div class="col-8">
                                             <h6 class="my-0"><?php echo $cartItem->prodName; ?></h6>                                            
-                                            
+                                            <input type="hidden" id = "carType" name="carType" value="<?php echo $cartItem->prodName; ?>">
                                             <small class="text-muted">Car Price: $<?php echo $cartItem->prodPrice; ?>&nbsp per day</small>
                                         </div>
                                         
                                     </div>
                                 </li>
                             <?php endforeach; ?>
+                            
+                            <?php foreach ($userDetail as $addrRow): ?>
+                                <input type="hidden" name = "emailFetch" id = "emailFetch" value="<?php echo $addrRow->email; ?>">
+                            <?php endforeach; ?>
+
                             <div class = "row">
                             <div class="col-6">
                                            
@@ -54,6 +59,7 @@
                                
                                      <small><label for="returnDate">Return</label></small>
                                      <input class="form-control" type="date" value="" name="returnDate" id="returnDate">
+                                     <p id = "showDate"></p>
                             </div> 
                         </div>
                     </ul>
@@ -159,7 +165,7 @@
                                     echo number_format((float) $initRows->CartTotal, 2, '.', '') + number_format((float) $initRows->initDiscount, 2, '.', '');
                                     ?>
                                 <?php } else { ?>
-                                    $<?php echo number_format((float) $initRows->CartTotal, 2, '.', ''); ?>
+                                    $<?php echo (number_format((float) $initRows->CartTotal, 2, '.', '')); ?>
                                 <?php } ?>
                             </div>                            
                         </div>                   
@@ -264,5 +270,3 @@
         <?php endif; ?>
     </div>  
 </div>
-
-

@@ -83,17 +83,11 @@
                         </li>
                         &nbsp; &nbsp; &nbsp;
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPetStore" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Rent
+                            <a class="nav-link"  href="<?php echo base_url(); ?>index.php/page/rentCar" id="navbarDropdown" aria-haspopup="true" aria-expanded="false">
+                               Rent
                             </a>
-                            <div class="dropdown-menu dropdown-menu-left dropdown-menu-custom" aria-labelledby="navbarDropdownPetStore">
-                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/products/4">Start a Car Reservation</a>
-                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/products/2">Start a SUV Reservation</a>
-                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/products/6">Start a Truck Reservation</a>
-                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/products/5">Special Demand - Exotic Cars</a>
-                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/products/3">View | Modify | Cancel</a>
-                            </div>
-                        </li>  
+                        </li>
+                        
                         &nbsp; &nbsp; &nbsp;          
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPetGrooming" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -129,7 +123,8 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-left dropdown-menu-custom" aria-labelledby="navbarDropdownPetWellness">
                                 <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/ourlocation">Our Locations</a>                
-                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/carTrading">Car Price Calculator</a>                                               
+                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/carTrading">Car Price Calculator</a>
+                                <a class="dropdown-item" href="<?php echo base_url(); ?>index.php/page/cancelBooking">Cancel Your Car Booking</a>                                               
                             </div>
                         </li>
                        &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 
@@ -175,7 +170,7 @@
             });//ajax
             
         }catch(ex){
-            alert(ex);
+            alert("Problem" + ex);
         }//end try catch
         
 });//end ready

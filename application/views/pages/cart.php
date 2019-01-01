@@ -55,7 +55,7 @@
                         ?>  
                     </div>
                     <div class="card-footer">
-                        <a href="<?php echo base_url(); ?>index.php/page/products/4" class="btn btn-primary">Continue Shopping</a>
+                        <a href="<?php echo base_url(); ?>index.php/page/products/4" class="btn btn-primary">Continue Searching</a>
                         
                         <button type="button" name="btn_initcart" class="btn btn-danger btn_initcart" data-productid="<?php echo $cartItem->product_Id; ?>"
                                 data-cartid="<?php echo $cartItem->CartId; ?>" data-total="<?php echo $totPrice ?>" >Initiate Checkout</button>

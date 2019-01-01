@@ -97,8 +97,55 @@ $(document).ready(function () {
                 data.bv.disableSubmitButtons(false);
             });
 
-    // Validate the form manually
+    //ajax for calling data    
+   //  document.getElementById("txtAppoTime").addEventListener("change", function(){
+   //      returnDateTimeChnage();
+   //  }, false);
+   // document.getElementById("txtAppoDate").addEventListener("change", function(){
+   //      returnDateTimeChnage();
+   //  }, false);
+    // Validate the form manually 
     $('#btnSubmitForAppmnt').click(function () {
         $('#bookMyCustomPackage').bootstrapValidator('validate');
     });
+    document.getElementById("carType").addEventListener("change", function(){
+            returnDateTimeChnage();
+        }, false);
+    document.getElementById("txtAppoTime").addEventListener("change", function(){
+            returnDateTimeChnage();
+        }, false);
+    document.getElementById("txtAppoDate").addEventListener("change", function(){
+            returnDateTimeChnage();
+        }, false);
 });
+
+function returnDateTimeChnage(){
+    var carType = document.getElementById("carType").value;
+    var appoDate = document.getElementById("txtAppoDate").value;
+    var appoTime = document.getElementById("txtAppoTime").value;
+        if(appoTime !=''){
+            //var baseurl = $('#findbaseurl').val();
+            $.ajax({
+                url: "http://localhost/Car_Services/index.php/page/returnDateTimeCheck/",
+                method: "POST",
+                data:{carType:carType, appoDate:appoDate, appoTime: appoTime},
+                dataType:'json',
+                success:function(data){
+                    $('#showDateTime').html(data.message);
+                    // alert("data: "+data);
+                    // console.log(data.message);
+                }
+
+            })
+    }//end if-else
+}
+
+
+    // window.addEventListener("load", function(){
+        document.getElementById("txtAppoDate").addEventListener("change", function(){
+            returnDateTimeChnage();
+        }, false);
+        document.getElementById("txtAppoTime").addEventListener("change", function(){
+            returnDateTimeChnage();
+        }, false);
+    // }, false);

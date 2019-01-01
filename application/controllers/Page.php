@@ -1,5 +1,5 @@
 <?php
-
+ 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Page extends CI_Controller {
@@ -356,6 +356,8 @@ class Page extends CI_Controller {
         $data['jsFile'] = $page;
         $data['result'] = $this->common->SelectCustomPackages();
 
+        $data['userDetails'] = $this->common->SelectById('users', 'id', $this->session->userdata('userId'));
+
         if ($this->session->userdata('successMessage')) {
             $data['successMessage'] = $this->session->userdata('successMessage');
             $this->session->unset_userdata('successMessage');
@@ -397,8 +399,34 @@ class Page extends CI_Controller {
             $this->session->set_userdata('success_msg', 'Please login to avail the services');
             redirect('page/login', 'refresh');
         } else {
+            //sell car status
+            if ($this->input->post('confirmBuy')) {
+                $query = $this->user->SelectCheckStatus($this->input->post('vehicleName'));
+                if($query->num_rows() > 0){
+                        // Date is alredy booked 
+                        // echo json_encode(["status"=>"failed","message"=>"Car is Already Sold! Plz pick a diffrent Car"]);
+                        // $result = "We are sorry! The Car you selected is already Sold Out, Select a different Car"; 
+                        $this->session->set_userdata('sellCancel_notification', "We are sorry! The Car you selected is already Sold Out, Select a different Car!!");
+                            redirect('page/soldoutNotice', 'refresh');
 
+                    }
+                    else{
+                        //echo json_encode(["status"=>"success","message"=>"Car is available."]);
+                        $buyData = array(
+                                'userId' => $this->session->userdata('userId'),
+                                'fullName' => strip_tags($this->input->post('name')),
+                                'vehicle' => strip_tags($this->input->post('vehicleName')),
+                                'price' => strip_tags($this->input->post('price')),
+                                'status' => 1
+                        );
 
+                     $insertSell = $this->common->InsertCommon('tbl_sold', $buyData);
+                     if($insertSell){
+                         $this->session->set_userdata('sell_notification', "Congratulations, Your Car Purchase order placed successfully, your Order ID is: #" . rand(10, 30));
+                            redirect('page/successfullySold', 'refresh');
+                        }
+                    }
+            }//end confirm buy button
             if ($this->input->post('btnSubmitForAppmnt')) {
 
                 $this->form_validation->set_rules('fullName', 'Full name', 'required');
@@ -412,6 +440,7 @@ class Page extends CI_Controller {
                     'FullName' => strip_tags($this->input->post('fullName')),
                     'Location' => strip_tags($this->input->post('location')),
                     'EmailId' => strip_tags($this->input->post('txtEmailId')),
+                    'CarType' => strip_tags($this->input->post('carType')),
                     'ContactNum' => strip_tags($this->input->post('txtContactNum')),
                     'AppoDate' => strip_tags($this->input->post('txtAppoDate')),
                     'AppoTime' => strip_tags($this->input->post('txtAppoTime')),
@@ -748,6 +777,7 @@ class Page extends CI_Controller {
         $userId = $this->session->userdata('userId');
         $data['jsFile'] = $page;
         $data['addressinfo'] = $this->common->SelectById('useraddress', 'userId', $userId);
+        $data['userDetail'] = $this->common->SelectById('users', 'id', $this->session->userdata('userId'));
         //$data['myCart'] = $this->common->SelectById('tbl_cart', 'UserId', $userId);
         $keyvalue = array(
             'UserId' => $this->session->userdata('userId'),
@@ -758,7 +788,7 @@ class Page extends CI_Controller {
         $data['myCarPoints'] = $this->common->SelectById('tbl_usercarpoints', 'UserId', $userId); // Fetch my CarPoints
 
         if ($this->input->post('btnSubmittoCheckout')) {
-            //echo 'I am posting successfully';
+            //echo 'I am posting successfully'; carType
             $this->form_validation->set_rules('radioShippingaddress', 'Address', 'required');
             $this->form_validation->set_rules('txtHdnTotal', 'Total', 'required');
             $this->form_validation->set_rules('paymentMethod', 'PaymentMethod', 'required');
@@ -776,6 +806,7 @@ class Page extends CI_Controller {
             //echo 'I am validating successfully';
             $orderData = array(
                 'UserId' => $this->session->userdata('userId'),
+                'CarType' => $this->input->post('carType'),
                 'pickupDate' => $this->input->post('pickupDate'),
                 'returnDate' => $this->input->post('returnDate'),
                 'AddressId' => $this->input->post('radioShippingaddress'),
@@ -792,9 +823,10 @@ class Page extends CI_Controller {
             //     'PointEarned' => $this->input->post('earnedCarPoint')
                
             // );
+            
 
             // $CarPoints = $this->common->InsertCommon('tbl_usercarpoints', $insert);
-            
+            // echo "<script>console.log($this->input->post('emailFetch'));</script>";
 
             //$orderResult = 1;
             if ($orderResult > 0) {
@@ -807,16 +839,44 @@ class Page extends CI_Controller {
                     );
                     //Insert into Order details table
                     $orderDetailResult = $this->common->InsertCommon('tbl_orderdetails', $orderDetails);
-                    if ($orderDetailResult) {
+                        if ($orderDetailResult) {
+                            //Email Confirmation for Order success
+                            
+                            $config = Array(
+                                'protocol' => 'smtp',
+                                'smtp_host' => 'ssl://smtp.googlemail.com',
+                                'smtp_port' => 465,
+                                'smtp_user' => 'info.onthewheel@gmail.com',
+                                'smtp_pass' => 'anandjat',
+                                'mailtype' => 'html',
+                                'charset' => 'iso-8859-1',
+                                'wordwrap' => TRUE
+                            );
+                            $this->load->library('email', $config);
+                            $this->email->set_newline("\r\n");
+                            $this->email->from('info.onthewheel@gmail.com', 'ON-the Wheel');
+                            $this->email->to($this->input->post('emailFetch'));
+                            $this->email->subject('ON-the Wheel: Reservation Confirmation');
+                            $this->email->message('Thank you for being a part of ON-the Wheel Services. You have successfully rented Vehicle and your Order ID is : # '. $orderResult ."\n"."You Can cancel your Booking anytime by clicking the link below :"."\n"."http://localhost/Car_Services/index.php/page/cancelBooking");
 
-                        $keyvalues = array(
-                            'UserId' => $this->session->userdata('userId')
-                        );
-                        $this->common->DeleteById('tbl_initcheckout', $keyvalues);
-                        $this->common->DeleteById('tbl_cart', $keyvalues);
-                        $this->UpdateCartCount();
-                        $this->session->set_userdata('order_notification', "Your Car order placed successfully, your Order ID is: #" . $orderResult);
-                        redirect('page/ordersuccess', 'refresh');
+                        if ($this->email->send()) {
+                                $keyvalues = array(
+                                    'UserId' => $this->session->userdata('userId')
+                                );
+                                $this->common->DeleteById('tbl_initcheckout', $keyvalues);
+                                $this->common->DeleteById('tbl_cart', $keyvalues);
+                                $this->UpdateCartCount();
+                                $this->session->set_userdata('order_notification', "Your Car order placed successfully, your Order ID is: #" . $orderResult);
+                                redirect('page/ordersuccess', 'refresh');
+                                 
+                        }else{
+                            show_error($this->email->print_debugger());
+                        }
+
+                        //............................
+                        //Print a message for order completion
+                       
+                        
                     }
                 }
             }
@@ -843,7 +903,7 @@ class Page extends CI_Controller {
 
         $data['redeemedUsers'] = $this->common->SelectById('tbl_redeemedusers', 'UserId', $this->session->userdata('userId'));
         if (count($data['redeemedUsers']) > 0) {
-            echo 'Code already used';
+            echo 'Promo Code already used';
         } else {
             $discPercentage = $this->common->SelectById('tbl_promocodes', 'Code', 'LOGINPROMO');
             $discount = $inittotal * ($discPercentage[0]->CodeDiscount / 100);
@@ -856,8 +916,13 @@ class Page extends CI_Controller {
                 'initDiscount' => number_format((float) $discount, 2, '.', '')
             );
             $updateResult = $this->common->UpdateByMultipleKeyValues('tbl_initcheckout', $key, $values);
-            if ($updateResult) {
-                echo 'Coupon code applied successfully';
+            $insertRedeem = array(
+                            'UserId' => $this->session->userdata('userId')
+                        );
+            $redeemUpdate = $this->common->InsertCommon('tbl_redeemedusers', $insertRedeem);
+
+            if ($redeemUpdate) {
+                echo 'Promo code applied successfully';
             }
         }
     }
@@ -875,9 +940,6 @@ class Page extends CI_Controller {
         $discount = $availpoint*2 / 10;
         $grandTotal = $initTotal - $discount;
         //$earnedCarPoint = ($grandTotal*50)/100;
-
-
-
 
         $keypoint = array(
             'UserId' => $userId
@@ -908,8 +970,10 @@ class Page extends CI_Controller {
         $page = 'ordersuccess';
 
         if ($this->session->userdata('order_notification')) {
+
             $data['order_notification'] = $this->session->userdata('order_notification');
-            $this->session->unset_userdata('order_notification');
+                 $this->session->unset_userdata('order_notification');
+                
         }
 
         $this->load->view('templates/header', $data);
@@ -961,8 +1025,12 @@ class Page extends CI_Controller {
         $data['title'] = 'User Settings';
         $page = 'usersettings';
 
-        //$data['userDetails'] = $this->common->SelectUserProfile();
+       
         $data['userDetails'] = $this->common->SelectById('users', 'id', $this->session->userdata('userId'));
+        //...........rough
+        // $data['emailFetch'] = $this->user->SelectUserEmail($this->session->userdata('userId'));
+        
+        // echo "<script>console.log( 'Debug Objects: " . $this->user->SelectUserEmail($this->session->userdata('userId')). "' );</script>";
 
         //print_r($data['userDetails']);
         $this->load->view('templates/header', $data);
@@ -1250,7 +1318,7 @@ class Page extends CI_Controller {
         $data['year'] = $this->user->fetch_year();
         $data['make'] = $this->user->fetch_make();
 
-       //$data['jsFile'] = $page;
+       //$data['jsFile'] = $page; //cancelBooking
         $this->load->view('templates/header', $data);
         $this->load->view('templates/breadcrumbs', $data);
         //$this->load->view('templates/left_sideBar', $data);
@@ -1261,7 +1329,7 @@ class Page extends CI_Controller {
     }
 
 
-      public function fetch_model(){  
+    public function fetch_model(){  
         if($this->input->post('make_Id')){
             echo $this->user->fetch_model($this->input->post('make_Id'));
         }
@@ -1292,7 +1360,7 @@ class Page extends CI_Controller {
                 $userData = array(
                     'name' => strip_tags($this->input->post('name')),
                     'license' => strip_tags($this->input->post('license')),
-                     'cell'       => strip_tags($this->input->post('cell')),
+                    'cell'       => strip_tags($this->input->post('cell')),
                     'mileDriven' => strip_tags($this->input->post('mileDriven')),
                     'carcondition' => strip_tags($this->input->post('carcondition')),
                     'year'       => strip_tags($this->input->post('year')),
@@ -1328,7 +1396,176 @@ class Page extends CI_Controller {
     }
 
 
+//returnDateCheck carType
 
+function returnDateCheck() {
+    $carType = $this->input->post('carType');
+    $returnDate = $this->input->post('retDate');
+    $pickupDate = $this->input->post('pickDate');
+
+        if(empty($returnDate) || empty($pickupDate)){
+        echo json_encode(["status"=>"failed","message"=>"Invalid date"]);
+            }
+            else{
+                $query = $this->user->fetch_date_query($carType, $returnDate, $pickupDate );
+                if($query->num_rows() > 0)
+                {
+                    // Date is alreqady booked 
+                    echo json_encode(["status"=>"failed","message"=>"Date is already booked! Please choose different Dates"]);
+                }
+                else
+                {
+                    echo json_encode(["status"=>"success","message"=>"Car is available."]);
+                }
+            }
 
 }
+public function cancelBooking($page = 'cancelBooking'){
+        $data['title'] = 'Cancel Your Car Booking';
+        $this->CheckIfLoggedIn();
+        $pickupDate = date("Y-m-d");
 
+        $data['orderRecord'] = $this->common->SelectById('tbl_orders', 'UserId', $this->session->userdata('userId'));
+        $data['orderInfo'] = $this->common->SelectSpecific('tbl_orders', $this->session->userdata('userId'), $pickupDate);
+        $data['userInfo'] = $this->common->SelectById('users', 'id', $this->session->userdata('userId'));
+
+        if ($this->input->post('btnSubmitCancel')) {
+            
+            $Orderid = $this->input->post('orderId');            
+            $delOrder = $this->user->DeleteOredrId('tbl_orders', $Orderid, $pickupDate);       
+            $config = Array(
+                        'protocol' => 'smtp',
+                        'smtp_host' => 'ssl://smtp.googlemail.com',
+                        'smtp_port' => 465,
+                        'smtp_user' => 'info.onthewheel@gmail.com',
+                        'smtp_pass' => 'anandjat',
+                        'mailtype' => 'html',
+                        'charset' => 'iso-8859-1',
+                        'wordwrap' => TRUE
+                    );
+                    $this->load->library('email', $config);
+                    $this->email->set_newline("\r\n");
+                    $this->email->from('info.onthewheel@gmail.com', 'ON-the Wheel');
+                    $this->email->to($this->input->post('email_Id'));
+                    $this->email->subject('ON-the Wheel: Cancellation Confirmation');
+                    $this->email->message('Thank you for being a part of ON-the Wheel Services. You have successfully Cancel the rented Vehicle and your Cancellation Receipt Number is : # '. rand(10, 40));
+
+                if ($this->email->send()) {
+                    redirect('page/confirmCancelBooking', 'refresh');
+                         
+                }else{
+                    show_error($this->email->print_debugger());
+                    echo "<script>alert( 'Debug Objects: " . "Not Deleted" . "' );</script>";
+                }
+
+        }//end if
+       //$data['jsFile'] = $page; //cancelBooking
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/breadcrumbs', $data);
+        //$this->load->view('templates/left_sideBar', $data);
+        $this->load->view('pages/' . $page, $data);
+        //$this->load->view('templates/right_sideBar', $data);
+        $this->load->view('templates/end_breadcrumbs', $data);
+        $this->load->view('templates/footer', $data);
+    }
+
+public function confirmCancelBooking($title = 'Cancel Order Confirmation') {
+
+        $this->CheckIfLoggedIn();
+        $data['title'] = ucfirst($title); // Capitalize the first letter
+        $page = 'confirmCancelBooking';
+        // $data['orderCancel'] = $this->common->SelectById('tbl_cancelorder', 'UserId', $this->session->userdata('userId'));
+        
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/breadcrumbs', $data);
+        //$this->load->view('templates/left_sideBar', $data);
+        $this->load->view('pages/' . $page, $data);
+        //$this->load->view('templates/right_sideBar', $data);
+        $this->load->view('templates/end_breadcrumbs', $data);
+        $this->load->view('templates/footer', $data);
+    }
+
+public function rentCar() {
+        $data['title'] = 'Rent A Car';
+        $page = 'rentCar';
+
+        $data['jsFile'] = $page;                                                                                                                                
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/breadcrumbs', $data);
+        //$this->load->view('templates/left_sideBar', $data);
+        $this->load->view('pages/' . $page, $data);
+        //$this->load->view('templates/right_sideBar', $data);
+        $this->load->view('templates/end_breadcrumbs', $data);
+        $this->load->view('templates/footer', $data);
+
+    }
+//function for checking the appoint date and time for other user
+function returnDateTimeCheck() {
+    $carType = $this->input->post('carType');
+    $appoDate = $this->input->post('appoDate');
+    $appoTime = $this->input->post('appoTime');
+
+        if(empty($carType) || empty($appoDate) || empty($appoTime)){
+        echo json_encode(["status"=>"failed","message"=>"Invalid date and Time"]);
+            }
+            else{
+                $query = $this->user->fetch_date_time_query($carType, $appoTime, $appoDate );
+                //$query = $this->user->fetch_date_query($returnDate, $pickupDate );
+                if($query->num_rows() > 0)
+                {
+                    // Date is alreqady booked 
+                    echo json_encode(["status"=>"failed","message"=>"Date and Time is already booked! Please choose different Date or Time"]);
+                }
+                else
+                {
+                    echo json_encode(["status"=>"success","message"=>"Car is available for Test Drive."]);
+                }
+            }
+
+}
+public function successfullySold($title = 'Sell Success') {
+
+        $this->CheckIfLoggedIn();
+        $data['title'] = ucfirst($title); // Capitalize the first letter
+        $page = 'successfullySold';
+
+        if ($this->session->userdata('sell_notification')) {
+
+            $data['sell_notification'] = $this->session->userdata('sell_notification');
+                 $this->session->unset_userdata('sell_notification');
+                
+        }
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/breadcrumbs', $data);
+        //$this->load->view('templates/left_sideBar', $data);
+        $this->load->view('pages/' . $page, $data);
+        //$this->load->view('templates/right_sideBar', $data);
+        $this->load->view('templates/end_breadcrumbs', $data);
+        $this->load->view('templates/footer', $data);
+    }
+
+public function soldoutNotice($title = 'Sold Out Car') {
+
+        $this->CheckIfLoggedIn();
+        $data['title'] = ucfirst($title); // Capitalize the first letter
+        $page = 'soldoutNotice';
+
+        if ($this->session->userdata('sellCancel_notification')) {
+
+            $data['sellCancel_notification'] = $this->session->userdata('sellCancel_notification');
+                 $this->session->unset_userdata('sellCancel_notification');
+                
+        }
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/breadcrumbs', $data);
+        //$this->load->view('templates/left_sideBar', $data);
+        $this->load->view('pages/' . $page, $data);
+        //$this->load->view('templates/right_sideBar', $data);
+        $this->load->view('templates/end_breadcrumbs', $data);
+        $this->load->view('templates/footer', $data);
+    }
+
+}

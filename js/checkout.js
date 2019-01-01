@@ -1,4 +1,5 @@
 $(document).ready(function () {
+    
     $('#frmCheckoutCart')
             .bootstrapValidator({
                 message: 'This value is not valid',
@@ -111,6 +112,11 @@ $(document).ready(function () {
                 data.bv.disableSubmitButtons(false);
             });
 
+    // var today = new Date().toISOString().split('T')[0];
+    // document.getElementsByName("pickupDate")[0].setAttribute('min', today);
+    // document.getElementsByName("returnDate")[0].setAttribute('min', today);
+
+
     // Validate the form manually
     $('#btnSubmittoCheckout').click(function () {
         $('#frmCheckoutCart').bootstrapValidator('validate');
@@ -139,6 +145,19 @@ $(document).ready(function () {
             alert('Enter a valid Promo code');
         }
     });
+//ajax for calling data
+       
+    document.getElementById("pickupDate").addEventListener("change", function(){
+       returnDateChnage();
+}, false);
+    
+    document.getElementById("returnDate").addEventListener("change", function(){
+       returnDateChnage();
+}, false);
+
+//     document.getElementById("pickup").addEventListener("change", function(){
+//        returnDateChnage();
+// }, false);
 
     $('#btnApplyCarPoints').click(function () {
         var totalPoints = $('#myTotalCarPoints').val();
@@ -185,4 +204,27 @@ $(document).ready(function () {
     $("#txtApplyCarpoints").keypress(function () {
         $('#showNotifications').html('');
     });
+    //ajax request for retrieving return dat data from data base
+//.....
 });
+
+function returnDateChnage()
+{
+    var carType = document.getElementById("carType").value;
+    var retDate = document.getElementById("returnDate").value;
+    var pickDate = document.getElementById("pickupDate").value;
+        if(retDate !=''){//carType
+            var baseurl = $('#findbaseurl').val();
+            $.ajax({
+                url: baseurl+"index.php/page/returnDateCheck/",
+                method: "POST",
+                data:{carType:carType, retDate:retDate, pickDate: pickDate},
+                dataType:'json',
+                success:function(data){
+                    $('#showDate').html(data.message);
+                    //alert("data: "+data);
+                }
+
+            })
+    }//end if-else
+}

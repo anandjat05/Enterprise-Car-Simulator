@@ -1,4 +1,4 @@
-
+    
 <div class="col-lg-8 mb-4">
     <div class="row">
         <div class="col">
@@ -20,6 +20,7 @@
                                 <div class="col-sm-10">
                                     <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="<?php echo $userRow->email; ?>">
                                 </div>
+                                
                             </div>
                             <div class="form-group row mb-0">
                                 <label for="inputPassword" class="col-sm-2 col-form-label">Phone </label>
